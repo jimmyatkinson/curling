@@ -116,14 +116,14 @@
             class="mt-4 overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/60"
           >
             <div
-              class="grid grid-cols-[56px,1.5fr,80px,80px,80px,96px] gap-2 border-b border-slate-800 bg-slate-900/80 px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400"
+              class="grid grid-cols-[56px,1.5fr,80px] md:grid-cols-[56px,1.5fr,80px,80px,80px,96px] gap-2 border-b border-slate-800 bg-slate-900/80 px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400"
             >
               <div>#</div>
               <div>Entry</div>
               <div class="text-right">Points</div>
-              <div class="text-right">Top Wins</div>
-              <div class="text-right">Mid Wins</div>
-              <div class="text-right">Bottom Wins</div>
+              <div class="hidden md:block text-right">Top Wins</div>
+              <div class="hidden md:block text-right">Mid Wins</div>
+              <div class="hidden md:block text-right">Bottom Wins</div>
             </div>
             <div
               id="leaderboard-body"
@@ -169,14 +169,13 @@
               >
                 <div class="mb-1 text-xs text-slate-300">Men&#39;s Standings</div>
                 <div
-                  class="grid grid-cols-[48px,1.5fr,repeat(4,minmax(0,72px))]"
+                  class="grid grid-cols-[40px,minmax(80px,1.5fr),repeat(3,minmax(50px,72px))]"
                 >
                   <div class="text-left">Rank</div>
                   <div class="text-left">Team</div>
                   <div class="text-center">GP</div>
                   <div class="text-center">W</div>
                   <div class="text-center">L</div>
-                  <div class="text-center">T</div>
                 </div>
               </div>
               <div
@@ -200,14 +199,13 @@
                   Women&#39;s Standings
                 </div>
                 <div
-                  class="grid grid-cols-[48px,1.5fr,repeat(4,minmax(0,72px))]"
+                  class="grid grid-cols-[40px,minmax(80px,1.5fr),repeat(3,minmax(50px,72px))]"
                 >
                   <div class="text-left">Rank</div>
                   <div class="text-left">Team</div>
                   <div class="text-center">GP</div>
                   <div class="text-center">W</div>
                   <div class="text-center">L</div>
-                  <div class="text-center">T</div>
                 </div>
               </div>
               <div
@@ -823,19 +821,19 @@
           leaderboardBody.innerHTML = scoredEntries
             .map(
               (e, index) => `
-              <div class="grid grid-cols-[56px,1.5fr,80px,80px,80px,96px] gap-2 px-4 py-2 hover:bg-slate-900/80">
+              <div class="grid grid-cols-[56px,1.5fr,80px] md:grid-cols-[56px,1.5fr,80px,80px,80px,96px] gap-2 px-4 py-2 hover:bg-slate-900/80">
                 <div class="font-semibold text-slate-100">${index + 1}</div>
                 <div class="truncate pr-4 text-slate-100">${e.name}</div>
                 <div class="text-right text-emerald-300 font-semibold">${
                   e.totalPoints
                 }</div>
-                <div class="text-right text-slate-200">${
+                <div class="hidden md:block text-right text-slate-200">${
                   e.topWinsTotal ?? 0
                 }</div>
-                <div class="text-right text-slate-200">${
+                <div class="hidden md:block text-right text-slate-200">${
                   e.midWinsTotal ?? 0
                 }</div>
-                <div class="text-right text-slate-200">${
+                <div class="hidden md:block text-right text-slate-200">${
                   e.bottomWinsTotal
                 }</div>
               </div>
@@ -876,21 +874,19 @@
                   : (row.wins ?? 0) + (row.losses ?? 0);
               const wins = row.wins ?? 0;
               const losses = row.losses ?? 0;
-              const ties = row.ties ?? 0;
 
               const displayName =
                 extractCodeFromStandingsName(name) || name || "Unknown";
 
               return `
-                <div class="grid grid-cols-[48px,1.5fr,repeat(4,minmax(0,72px))] px-4 py-2 hover:bg-slate-900/80">
+                <div class="grid grid-cols-[40px,minmax(80px,1.5fr),repeat(3,minmax(50px,72px))] px-4 py-2 hover:bg-slate-900/80">
                   <div class="text-left font-semibold text-slate-200">${
                     index + 1
                   }</div>
-                  <div class="truncate pr-4 text-slate-100">${displayName}</div>
+                  <div class="text-slate-100 whitespace-nowrap">${displayName}</div>
                   <div class="text-center text-slate-200">${games}</div>
                   <div class="text-center text-emerald-300">${wins}</div>
                   <div class="text-center text-rose-300">${losses}</div>
-                  <div class="text-center text-slate-300">${ties}</div>
                 </div>
               `;
             })
