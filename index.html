@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fantasy Olympic Curling League</title>
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="min-h-screen bg-slate-950 text-slate-100">
+    <!-- Page wrapper -->
+    <div class="flex min-h-screen flex-col">
+      <!-- Header / Nav -->
+      <header
+        class="border-b border-slate-800 bg-slate-900/70 backdrop-blur-md"
+      >
+        <div
+          class="mx-auto flex max-w-5xl items-center justify-between px-4 py-4"
+        >
+          <div class="flex items-center gap-3">
+            <div
+              class="flex h-9 w-9 items-center justify-center rounded-full bg-cyan-400/10 ring-1 ring-cyan-400/40"
+            >
+              <span class="text-lg font-semibold text-cyan-300">C</span>
+            </div>
+            <div>
+              <h1 class="text-lg font-semibold tracking-tight">
+                Iselin Curl-O-Rama
+              </h1>
+              <p class="text-xs text-slate-400">
+                Milano Cortina 2026
+              </p>
+            </div>
+          </div>
+
+          <nav class="hidden gap-6 text-sm font-medium text-slate-300 md:flex">
+            <a href="#standings" class="hover:text-cyan-300">Standings</a>
+            <a href="#teams" class="hover:text-cyan-300">Teams</a>
+            <a href="#schedule" class="hover:text-cyan-300">Schedule</a>
+            <a href="#rules" class="hover:text-cyan-300">Rules</a>
+          </nav>
+        </div>
+      </header>
+
+      <!-- Main content -->
+      <main class="mx-auto flex w-full max-w-5xl flex-1 flex-col px-4 py-8">
+        <!-- Hero / Intro -->
+        <section class="mb-10 grid gap-8 md:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
+          <div>
+            <h2 class="text-3xl font-semibold tracking-tight sm:text-4xl">
+              Track your fantasy curlers in real time.
+            </h2>
+            <p class="mt-4 text-sm leading-relaxed text-slate-300">
+              This fantasy Olympic curling league keeps your standings
+              automatically in sync with real-world results. Draft your team,
+              follow every end, and watch your squad climb the table as games
+              go final.
+            </p>
+            <div class="mt-6 flex flex-wrap items-center gap-3 text-xs">
+              <span
+                class="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-3 py-1 text-emerald-300 ring-1 ring-emerald-500/40"
+              >
+                <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+                Live standings
+              </span>
+              <span
+                class="rounded-full bg-slate-800 px-3 py-1 text-slate-300 ring-1 ring-slate-700"
+              >
+                Olympic format
+              </span>
+            </div>
+          </div>
+
+          <!-- Quick standings summary card -->
+          <aside
+            class="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-lg shadow-black/40"
+          >
+            <div class="flex items-center justify-between gap-2">
+              <h3 class="text-sm font-semibold tracking-tight text-slate-100">
+                Current Standings Snapshot
+              </h3>
+              <span
+                id="standings-last-updated"
+                class="text-[11px] text-slate-400"
+              >
+                Updating…
+              </span>
+            </div>
+            <p class="mt-1 text-xs text-slate-400">
+              Pulled automatically from official World Curling Olympic standings.
+            </p>
+            <div
+              id="standings-summary"
+              class="mt-4 space-y-1 text-xs text-slate-200"
+            >
+              <p class="text-slate-400">
+                Loading latest standings&hellip;
+              </p>
+            </div>
+          </aside>
+        </section>
+
+        <!-- Fantasy Leaderboard (primary) -->
+        <section id="leaderboard" class="mb-12">
+          <h3 class="text-xl font-semibold tracking-tight">
+            Fantasy Leaderboard
+          </h3>
+          <p class="mt-2 text-sm text-slate-300">
+            Live scoring based on current Olympic round robin wins. Top and
+            middle tier wins are worth 1 point; bottom tier wins are worth
+            2 points. Medal bonuses will be added automatically once playoffs
+            are complete.
+          </p>
+
+          <div
+            class="mt-4 overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/60"
+          >
+            <div
+              class="grid grid-cols-[56px,1.5fr,80px,80px,80px,96px] gap-2 border-b border-slate-800 bg-slate-900/80 px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400"
+            >
+              <div>#</div>
+              <div>Entry</div>
+              <div class="text-right">Points</div>
+              <div class="text-right">Top Wins</div>
+              <div class="text-right">Mid Wins</div>
+              <div class="text-right">Bottom Wins</div>
+            </div>
+            <div
+              id="leaderboard-body"
+              class="divide-y divide-slate-800 text-xs"
+            >
+              <div class="px-4 py-3 text-slate-400">
+                Calculating fantasy scores&hellip;
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Standings -->
+        <section id="standings" class="mb-12">
+          <div class="flex items-center justify-between gap-2">
+            <div>
+              <h3 class="text-xl font-semibold tracking-tight">
+                Olympic Standings
+              </h3>
+              <p class="mt-1 text-xs text-slate-400">
+                Live round robin standings from the official World Curling
+                Olympic pages for both the men&#39;s and women&#39;s events.
+                Fantasy scoring uses both sets of results behind the scenes.
+              </p>
+            </div>
+            <button
+              id="refresh-standings"
+              class="inline-flex items-center gap-1.5 rounded-full border border-slate-700 bg-slate-900 px-3 py-1 text-xs font-medium text-slate-200 hover:border-cyan-400 hover:text-cyan-200"
+              type="button"
+            >
+              <span class="h-1.5 w-1.5 rounded-full bg-cyan-400"></span>
+              Refresh
+            </button>
+          </div>
+
+          <div class="mt-4 grid gap-4 md:grid-cols-2">
+            <!-- Men -->
+            <div
+              class="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/60"
+            >
+              <div
+                class="border-b border-slate-800 bg-slate-900/80 px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400"
+              >
+                <div class="mb-1 text-xs text-slate-300">Men&#39;s Standings</div>
+                <div
+                  class="grid grid-cols-[48px,1.5fr,repeat(4,minmax(0,72px))]"
+                >
+                  <div class="text-left">Rank</div>
+                  <div class="text-left">Team</div>
+                  <div class="text-center">GP</div>
+                  <div class="text-center">W</div>
+                  <div class="text-center">L</div>
+                  <div class="text-center">T</div>
+                </div>
+              </div>
+              <div
+                id="standings-body-men"
+                class="divide-y divide-slate-800 text-xs"
+              >
+                <div class="px-4 py-3 text-slate-400">
+                  Loading men&#39;s standings&hellip;
+                </div>
+              </div>
+            </div>
+
+            <!-- Women -->
+            <div
+              class="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/60"
+            >
+              <div
+                class="border-b border-slate-800 bg-slate-900/80 px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400"
+              >
+                <div class="mb-1 text-xs text-slate-300">
+                  Women&#39;s Standings
+                </div>
+                <div
+                  class="grid grid-cols-[48px,1.5fr,repeat(4,minmax(0,72px))]"
+                >
+                  <div class="text-left">Rank</div>
+                  <div class="text-left">Team</div>
+                  <div class="text-center">GP</div>
+                  <div class="text-center">W</div>
+                  <div class="text-center">L</div>
+                  <div class="text-center">T</div>
+                </div>
+              </div>
+              <div
+                id="standings-body-women"
+                class="divide-y divide-slate-800 text-xs"
+              >
+                <div class="px-4 py-3 text-slate-400">
+                  Loading women&#39;s standings&hellip;
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <p class="mt-2 text-[11px] text-slate-500">
+            Note: Standings are derived from
+            <span class="font-semibold">World Curling&#39;s official Olympic
+            standings pages</span>
+            on <span class="italic">livescores.worldcurling.org</span>, fetched by
+            a small backend scraper on this site.
+          </p>
+        </section>
+
+        <!-- Teams / Entries -->
+        <section id="teams" class="mb-12">
+          <h3 class="text-xl font-semibold tracking-tight">
+            Entries &amp; Drafted Teams
+          </h3>
+          <p class="mt-2 text-sm text-slate-300">
+            All entries are locked in. Each manager has drafted three women&#39;s
+            teams and three men&#39;s teams, one from each tier (top, middle,
+            bottom) by betting odds.
+          </p>
+
+          <div
+            class="mt-4 overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/60"
+          >
+            <div
+              class="grid grid-cols-[minmax(150px,1.1fr),repeat(6,minmax(120px,1fr))] gap-2 border-b border-slate-800 bg-slate-900/80 px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400"
+            >
+              <div>Entry</div>
+              <div class="text-center">M Top</div>
+              <div class="text-center">M Mid</div>
+              <div class="text-center">M Bot</div>
+              <div class="text-center">W Top</div>
+              <div class="text-center">W Mid</div>
+              <div class="text-center">W Bot</div>
+            </div>
+            <div
+              id="entries-body"
+              class="max-h-[360px] divide-y divide-slate-800 overflow-auto text-xs"
+            >
+              <!-- Populated by script -->
+              <div class="px-4 py-3 text-slate-400">
+                Loading entries&hellip;
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Schedule -->
+        <section id="schedule" class="mb-12">
+          <h3 class="text-xl font-semibold tracking-tight">
+            Schedule
+          </h3>
+          <p class="mt-2 text-sm text-slate-300">
+            List upcoming Olympic draws, playoff brackets, or your own fantasy
+            scoring windows here. In the future you could extend the backend to
+            also parse draw data from the official World Curling pages.
+          </p>
+        </section>
+
+        <!-- Rules -->
+        <section id="rules" class="mb-12">
+          <h3 class="text-xl font-semibold tracking-tight">
+            League Rules
+          </h3>
+
+          <div class="mt-3 space-y-4 text-sm text-slate-300">
+            <div>
+              <h4 class="text-sm font-semibold text-slate-100">
+                Entries &amp; Draft
+              </h4>
+              <ul class="mt-1 list-disc space-y-1 pl-5">
+                <li>
+                  Each person is allowed <span class="font-semibold">1 entry</span>
+                  at a cost of <span class="font-semibold">$10</span>.
+                </li>
+                <li>
+                  Each entry selects
+                  <span class="font-semibold">3 women&#39;s teams</span> and
+                  <span class="font-semibold">3 men&#39;s teams</span>.
+                </li>
+                <li>
+                  Teams are tiered based on betting odds. You must select
+                  <span class="font-semibold">1 team from each tier</span> (top,
+                  middle, bottom) for both women&#39;s and men&#39;s fields.
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 class="text-sm font-semibold text-slate-100">
+                Scoring – Round Robin
+              </h4>
+              <ul class="mt-1 list-disc space-y-1 pl-5">
+                <li>
+                  <span class="font-semibold">1 point</span> for every round robin
+                  win by your <span class="font-semibold">top tier</span> women&#39;s
+                  and men&#39;s teams.
+                </li>
+                <li>
+                  <span class="font-semibold">1 point</span> for every round robin
+                  win by your
+                  <span class="font-semibold">middle tier</span> women&#39;s
+                  and men&#39;s teams.
+                </li>
+                <li>
+                  <span class="font-semibold">2 points</span> for every round robin
+                  win by your
+                  <span class="font-semibold">bottom tier</span> women&#39;s
+                  and men&#39;s teams.
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 class="text-sm font-semibold text-slate-100">
+                Scoring – Final Standings &amp; Medals
+              </h4>
+              <ul class="mt-1 list-disc space-y-1 pl-5">
+                <li>
+                  <span class="font-semibold">+1 point</span> if you chose a team
+                  that finishes <span class="font-semibold">4th place</span>.
+                </li>
+                <li>
+                  <span class="font-semibold">+2 points</span> if you chose a team
+                  that wins the <span class="font-semibold">Bronze Medal</span>.
+                </li>
+                <li>
+                  <span class="font-semibold">+3 points</span> if you chose a team
+                  that wins the <span class="font-semibold">Silver Medal</span>.
+                </li>
+                <li>
+                  <span class="font-semibold">+5 points</span> if you chose a team
+                  that wins the <span class="font-semibold">Gold Medal</span>.
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 class="text-sm font-semibold text-slate-100">
+                Payouts
+              </h4>
+              <p class="mt-1">
+                The entry with the highest total points wins
+                <span class="font-semibold">60%</span> of the prize pool.
+                Second place wins <span class="font-semibold">30%</span>, and
+                third place wins <span class="font-semibold">10%</span>.
+              </p>
+            </div>
+
+            <div>
+              <h4 class="text-sm font-semibold text-slate-100">
+                Tie‑Breakers
+              </h4>
+              <ol class="mt-1 list-decimal space-y-1 pl-5">
+                <li>
+                  Most combined wins by
+                  <span class="font-semibold">bottom tier</span> teams (men +
+                  women).
+                </li>
+                <li>
+                  Most total medals of any color (Gold + Silver + Bronze) among
+                  your six teams.
+                </li>
+                <li>
+                  If still tied, the tie stands and the affected prize(s) are
+                  shared.
+                </li>
+              </ol>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <!-- Footer -->
+      <footer class="border-t border-slate-800 bg-slate-900/80">
+        <div
+          class="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-4 text-[11px] text-slate-500"
+        >
+          <span>Fantasy Olympic Curling League</span>
+          <span>Standings powered by World Curling Olympic livescores</span>
+        </div>
+      </footer>
+    </div>
+
+    <!-- Main app script: standings + entries + scoring -->
+    <script>
+      (function () {
+        // ----- Data: Fantasy entries -----
+        const entries = [
+          {
+            name: "Jacob Ott",
+            womensTop: "Canada",
+            womensMid: "Denmark",
+            womensBottom: "China",
+            mensTop: "Great Britain",
+            mensMid: "Sweden",
+            mensBottom: "USA",
+          },
+          {
+            name: "Adam Iselin",
+            womensTop: "Canada",
+            womensMid: "Denmark",
+            womensBottom: "USA",
+            mensTop: "Great Britain",
+            mensMid: "Italy",
+            mensBottom: "Norway",
+          },
+          {
+            name: "Eric Paulson",
+            womensTop: "Canada",
+            womensMid: "Japan",
+            womensBottom: "USA",
+            mensTop: "Great Britain",
+            mensMid: "Switzerland",
+            mensBottom: "USA",
+          },
+          {
+            name: "Tyler Young",
+            womensTop: "Canada",
+            womensMid: "South Korea",
+            womensBottom: "Great Britain",
+            mensTop: "Canada",
+            mensMid: "Germany",
+            mensBottom: "China",
+          },
+          {
+            name: "Robbie Moon",
+            womensTop: "Canada",
+            womensMid: "South Korea",
+            womensBottom: "USA",
+            mensTop: "Great Britain",
+            mensMid: "Sweden",
+            mensBottom: "Norway",
+          },
+          {
+            name: "Nathan Marshall",
+            womensTop: "Canada",
+            womensMid: "Sweden",
+            womensBottom: "China",
+            mensTop: "Canada",
+            mensMid: "Switzerland",
+            mensBottom: "USA",
+          },
+          {
+            name: "Johnny Johnston",
+            womensTop: "Canada",
+            womensMid: "Sweden",
+            womensBottom: "China",
+            mensTop: "Canada",
+            mensMid: "Switzerland",
+            mensBottom: "USA",
+          },
+          {
+            name: "Jimbo Atkinson",
+            womensTop: "Canada",
+            womensMid: "Sweden",
+            womensBottom: "China",
+            mensTop: "Great Britain",
+            mensMid: "Switzerland",
+            mensBottom: "China",
+          },
+          {
+            name: "Chris Laughlin",
+            womensTop: "Canada",
+            womensMid: "Sweden",
+            womensBottom: "China",
+            mensTop: "Great Britain",
+            mensMid: "Switzerland",
+            mensBottom: "Norway",
+          },
+          {
+            name: "George Young",
+            womensTop: "Canada",
+            womensMid: "Sweden",
+            womensBottom: "Great Britain",
+            mensTop: "Great Britain",
+            mensMid: "Sweden",
+            mensBottom: "China",
+          },
+          {
+            name: "Matt Young",
+            womensTop: "Canada",
+            womensMid: "Sweden",
+            womensBottom: "Great Britain",
+            mensTop: "Great Britain",
+            mensMid: "Sweden",
+            mensBottom: "Norway",
+          },
+          {
+            name: "Joshua Madsen",
+            womensTop: "Canada",
+            womensMid: "Sweden",
+            womensBottom: "Italy",
+            mensTop: "Canada",
+            mensMid: "Sweden",
+            mensBottom: "Norway",
+          },
+          {
+            name: "Cory Iselin",
+            womensTop: "Canada",
+            womensMid: "Sweden",
+            womensBottom: "Italy",
+            mensTop: "Great Britain",
+            mensMid: "Sweden",
+            mensBottom: "USA",
+          },
+          {
+            name: "Meems Iselin",
+            womensTop: "Canada",
+            womensMid: "Sweden",
+            womensBottom: "USA",
+            mensTop: "Canada",
+            mensMid: "Switzerland",
+            mensBottom: "USA",
+          },
+          {
+            name: "Chuck Atkinson",
+            womensTop: "Canada",
+            womensMid: "Sweden",
+            womensBottom: "USA",
+            mensTop: "Great Britain",
+            mensMid: "Sweden",
+            mensBottom: "USA",
+          },
+          {
+            name: "Jeremy Michels",
+            womensTop: "Canada",
+            womensMid: "Sweden",
+            womensBottom: "USA",
+            mensTop: "Great Britain",
+            mensMid: "Switzerland",
+            mensBottom: "Norway",
+          },
+          {
+            name: "Mike Iselin",
+            womensTop: "Canada",
+            womensMid: "Sweden",
+            womensBottom: "USA",
+            mensTop: "Great Britain",
+            mensMid: "Switzerland",
+            mensBottom: "USA",
+          },
+          {
+            name: "Diane Young",
+            womensTop: "Switzerland",
+            womensMid: "Denmark",
+            womensBottom: "USA",
+            mensTop: "Canada",
+            mensMid: "Italy",
+            mensBottom: "USA",
+          },
+          {
+            name: "Will Schlimm",
+            womensTop: "Switzerland",
+            womensMid: "South Korea",
+            womensBottom: "Great Britain",
+            mensTop: "Canada",
+            mensMid: "Italy",
+            mensBottom: "USA",
+          },
+          {
+            name: "Mike Schlimm",
+            womensTop: "Switzerland",
+            womensMid: "South Korea",
+            womensBottom: "Great Britain",
+            mensTop: "Great Britain",
+            mensMid: "Sweden",
+            mensBottom: "USA",
+          },
+          {
+            name: "Jon Flemming",
+            womensTop: "Switzerland",
+            womensMid: "South Korea",
+            womensBottom: "Italy",
+            mensTop: "Great Britain",
+            mensMid: "Italy",
+            mensBottom: "Norway",
+          },
+          {
+            name: "Steve Iselin",
+            womensTop: "Switzerland",
+            womensMid: "South Korea",
+            womensBottom: "Italy",
+            mensTop: "Great Britain",
+            mensMid: "Sweden",
+            mensBottom: "USA",
+          },
+          {
+            name: "Tony Easterlin",
+            womensTop: "Switzerland",
+            womensMid: "South Korea",
+            womensBottom: "USA",
+            mensTop: "Great Britain",
+            mensMid: "Switzerland",
+            mensBottom: "USA",
+          },
+          {
+            name: "Brian Cadman",
+            womensTop: "Switzerland",
+            womensMid: "Sweden",
+            womensBottom: "Italy",
+            mensTop: "Great Britain",
+            mensMid: "Sweden",
+            mensBottom: "Norway",
+          },
+          {
+            name: "Barbie Madsen",
+            womensTop: "Switzerland",
+            womensMid: "Japan",
+            womensBottom: "USA",
+            mensTop: "Great Britain",
+            mensMid: "Italy",
+            mensBottom: "USA",
+          },
+          {
+            name: "Zachary Kaplan",
+            womensTop: "Canada",
+            womensMid: "Sweden",
+            womensBottom: "China",
+            mensTop: "Great Britain",
+            mensMid: "Sweden",
+            mensBottom: "China",
+          },
+        ];
+
+        // Map country names to IOC country codes used by World Curling standings.
+        const COUNTRY_CODE = {
+          Canada: "CAN",
+          "People's Republic of China": "CHN",
+          China: "CHN",
+          Czechia: "CZE",
+          "Great Britain": "GBR",
+          Germany: "GER",
+          Italy: "ITA",
+          Norway: "NOR",
+          Switzerland: "SUI",
+          Sweden: "SWE",
+          USA: "USA",
+          "United States": "USA",
+          Denmark: "DEN",
+          Japan: "JPN",
+          "South Korea": "KOR",
+        };
+
+        // Medal bonuses can be filled in later once playoffs are done.
+        // Example shape: medalBonus.women.CAN = 5 (Gold), etc.
+        const medalBonus = {
+          women: {},
+          men: {},
+        };
+
+        // ----- DOM references -----
+        const standingsBodyMen = document.getElementById("standings-body-men");
+        const standingsBodyWomen = document.getElementById(
+          "standings-body-women"
+        );
+        const standingsSummary = document.getElementById("standings-summary");
+        const lastUpdatedEl = document.getElementById(
+          "standings-last-updated"
+        );
+        const refreshBtn = document.getElementById("refresh-standings");
+        const entriesBody = document.getElementById("entries-body");
+        const leaderboardBody = document.getElementById("leaderboard-body");
+
+        // Local backend endpoint that scrapes World Curling standings.
+        const API_URL = "/api/standings";
+
+        function buildEntriesTable() {
+          if (!entriesBody) return;
+          entriesBody.innerHTML = entries
+            .map(
+              (e) => `
+              <div class="grid grid-cols-[minmax(150px,1.1fr),repeat(6,minmax(120px,1fr))] gap-2 px-4 py-2 hover:bg-slate-900/70">
+                <div class="font-semibold text-slate-100">${e.name}</div>
+                <div class="text-center text-slate-200">${
+                  COUNTRY_CODE[e.mensTop] ?? e.mensTop
+                }</div>
+                <div class="text-center text-slate-200">${
+                  COUNTRY_CODE[e.mensMid] ?? e.mensMid
+                }</div>
+                <div class="text-center text-slate-200">${
+                  COUNTRY_CODE[e.mensBottom] ?? e.mensBottom
+                }</div>
+                <div class="text-center text-slate-200">${
+                  COUNTRY_CODE[e.womensTop] ?? e.womensTop
+                }</div>
+                <div class="text-center text-slate-200">${
+                  COUNTRY_CODE[e.womensMid] ?? e.womensMid
+                }</div>
+                <div class="text-center text-slate-200">${
+                  COUNTRY_CODE[e.womensBottom] ?? e.womensBottom
+                }</div>
+              </div>
+            `
+            )
+            .join("");
+        }
+
+        function extractCodeFromStandingsName(name) {
+          // Standings use "CAN - Canada" etc.
+          if (!name) return "";
+          return name.split("-")[0].trim().toUpperCase();
+        }
+
+        function buildStandingsMaps(data) {
+          const men = Array.isArray(data.men) ? data.men : [];
+          const women = Array.isArray(data.women) ? data.women : [];
+
+          const menByCode = {};
+          for (const row of men) {
+            const code = extractCodeFromStandingsName(row.team);
+            if (!code) continue;
+            menByCode[code] = row;
+          }
+
+          const womenByCode = {};
+          for (const row of women) {
+            const code = extractCodeFromStandingsName(row.team);
+            if (!code) continue;
+            womenByCode[code] = row;
+          }
+
+          return { men, women, menByCode, womenByCode };
+        }
+
+        function calculateScores(standingsMaps) {
+          const { menByCode, womenByCode } = standingsMaps;
+
+          function getWins(map, code) {
+            if (!code) return 0;
+            const row = map[code];
+            if (!row) return 0;
+            return row.wins ?? 0;
+          }
+
+          function getMedalBonus(gender, code) {
+            if (!code) return 0;
+            return medalBonus[gender]?.[code] ?? 0;
+          }
+
+          const scored = entries.map((e) => {
+            const wTopCode = COUNTRY_CODE[e.womensTop];
+            const wMidCode = COUNTRY_CODE[e.womensMid];
+            const wBotCode = COUNTRY_CODE[e.womensBottom];
+            const mTopCode = COUNTRY_CODE[e.mensTop];
+            const mMidCode = COUNTRY_CODE[e.mensMid];
+            const mBotCode = COUNTRY_CODE[e.mensBottom];
+
+            const wTopWins = getWins(womenByCode, wTopCode);
+            const wMidWins = getWins(womenByCode, wMidCode);
+            const wBotWins = getWins(womenByCode, wBotCode);
+            const mTopWins = getWins(menByCode, mTopCode);
+            const mMidWins = getWins(menByCode, mMidCode);
+            const mBotWins = getWins(menByCode, mBotCode);
+
+            const topWinsTotal = wTopWins + mTopWins;
+            const midWinsTotal = wMidWins + mMidWins;
+            const bottomWinsTotal = wBotWins + mBotWins;
+
+            const rrPoints =
+              (wTopWins + wMidWins + mTopWins + mMidWins) * 1 +
+              (wBotWins + mBotWins) * 2;
+
+            const medalPoints =
+              getMedalBonus("women", wTopCode) +
+              getMedalBonus("women", wMidCode) +
+              getMedalBonus("women", wBotCode) +
+              getMedalBonus("men", mTopCode) +
+              getMedalBonus("men", mMidCode) +
+              getMedalBonus("men", mBotCode);
+
+            const totalPoints = rrPoints + medalPoints;
+
+            return {
+              ...e,
+              rrPoints,
+              medalPoints,
+              totalPoints,
+              topWinsTotal,
+              midWinsTotal,
+              bottomWinsTotal,
+            };
+          });
+
+          // Sort by total points desc, then by bottom tier wins desc, then by name.
+          scored.sort((a, b) => {
+            if (b.totalPoints !== a.totalPoints) {
+              return b.totalPoints - a.totalPoints;
+            }
+            if (b.bottomWinsTotal !== a.bottomWinsTotal) {
+              return b.bottomWinsTotal - a.bottomWinsTotal;
+            }
+            return a.name.localeCompare(b.name);
+          });
+
+          return scored;
+        }
+
+        function renderLeaderboard(scoredEntries) {
+          if (!leaderboardBody) return;
+          leaderboardBody.innerHTML = scoredEntries
+            .map(
+              (e, index) => `
+              <div class="grid grid-cols-[56px,1.5fr,80px,80px,80px,96px] gap-2 px-4 py-2 hover:bg-slate-900/80">
+                <div class="font-semibold text-slate-100">${index + 1}</div>
+                <div class="truncate pr-4 text-slate-100">${e.name}</div>
+                <div class="text-right text-emerald-300 font-semibold">${
+                  e.totalPoints
+                }</div>
+                <div class="text-right text-slate-200">${
+                  e.topWinsTotal ?? 0
+                }</div>
+                <div class="text-right text-slate-200">${
+                  e.midWinsTotal ?? 0
+                }</div>
+                <div class="text-right text-slate-200">${
+                  e.bottomWinsTotal
+                }</div>
+              </div>
+            `
+            )
+            .join("");
+        }
+
+        function renderStandingsTable(rows, targetEl) {
+          if (!targetEl) return;
+          if (!rows.length) {
+            targetEl.innerHTML =
+              '<div class="px-4 py-3 text-slate-400">No standings available yet.</div>';
+            return;
+          }
+
+          // Deduplicate by country code in case the source table contains
+          // duplicate rows for the same team (e.g., multiple groupings).
+          const seen = new Set();
+          const uniqueRows = [];
+          for (const row of rows) {
+            const code = extractCodeFromStandingsName(row.team);
+            if (!code) {
+              uniqueRows.push(row);
+              continue;
+            }
+            if (seen.has(code)) continue;
+            seen.add(code);
+            uniqueRows.push(row);
+          }
+
+          targetEl.innerHTML = uniqueRows
+            .map((row, index) => {
+              const name = row.team ?? "Unknown";
+              const games =
+                row.games != null
+                  ? row.games
+                  : (row.wins ?? 0) + (row.losses ?? 0);
+              const wins = row.wins ?? 0;
+              const losses = row.losses ?? 0;
+              const ties = row.ties ?? 0;
+
+              const displayName =
+                extractCodeFromStandingsName(name) || name || "Unknown";
+
+              return `
+                <div class="grid grid-cols-[48px,1.5fr,repeat(4,minmax(0,72px))] px-4 py-2 hover:bg-slate-900/80">
+                  <div class="text-left font-semibold text-slate-200">${
+                    index + 1
+                  }</div>
+                  <div class="truncate pr-4 text-slate-100">${displayName}</div>
+                  <div class="text-center text-slate-200">${games}</div>
+                  <div class="text-center text-emerald-300">${wins}</div>
+                  <div class="text-center text-rose-300">${losses}</div>
+                  <div class="text-center text-slate-300">${ties}</div>
+                </div>
+              `;
+            })
+            .join("");
+        }
+
+        function renderSnapshotFromFantasy(scoredEntries) {
+          if (!standingsSummary) return;
+          if (!scoredEntries.length) {
+            standingsSummary.innerHTML =
+              '<p class="text-slate-400">No fantasy scoring data available yet.</p>';
+            return;
+          }
+
+          const top = scoredEntries.slice(0, 3);
+          standingsSummary.innerHTML = top
+            .map((row, index) => {
+              const name = row.name ?? "Unknown entry";
+              const points = row.totalPoints ?? 0;
+              return `
+                <div class="flex items-center justify-between gap-2">
+                  <div class="flex items-center gap-2">
+                    <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-slate-800 text-[11px] text-slate-300">${
+                      index + 1
+                    }</span>
+                    <span class="truncate text-slate-100">${name}</span>
+                  </div>
+                  <span class="text-[11px] text-slate-300">${points} pts</span>
+                </div>
+              `;
+            })
+            .join("");
+        }
+
+        async function fetchAndRenderAll() {
+          try {
+            if (standingsBodyMen) {
+              standingsBodyMen.innerHTML =
+                '<div class="px-4 py-3 text-slate-400">Loading men&#39;s standings&hellip;</div>';
+            }
+            if (standingsBodyWomen) {
+              standingsBodyWomen.innerHTML =
+                '<div class="px-4 py-3 text-slate-400">Loading women&#39;s standings&hellip;</div>';
+            }
+            if (leaderboardBody) {
+              leaderboardBody.innerHTML =
+                '<div class="px-4 py-3 text-slate-400">Calculating fantasy scores&hellip;</div>';
+            }
+
+            const res = await fetch(API_URL);
+            if (!res.ok) {
+              throw new Error("Failed to fetch standings");
+            }
+            const data = await res.json();
+
+            const maps = buildStandingsMaps(data);
+            const men = maps.men;
+            const women = maps.women;
+
+            renderStandingsTable(men, standingsBodyMen);
+            renderStandingsTable(women, standingsBodyWomen);
+
+            const scoredEntries = calculateScores(maps);
+            renderLeaderboard(scoredEntries);
+            renderSnapshotFromFantasy(scoredEntries);
+
+            if (lastUpdatedEl) {
+              const now = new Date();
+              lastUpdatedEl.textContent = `Last updated: ${now.toLocaleTimeString()}`;
+            }
+          } catch (err) {
+            console.error(err);
+            if (standingsBodyMen) {
+              standingsBodyMen.innerHTML =
+                '<div class="px-4 py-3 text-rose-300">Unable to load men&#39;s standings. This may be a temporary issue with the World Curling site or your local server. Check that the Node server is running and that livescores.worldcurling.org is reachable.</div>';
+            }
+            if (standingsBodyWomen) {
+              standingsBodyWomen.innerHTML =
+                '<div class="px-4 py-3 text-rose-300">Unable to load standings. This may be a temporary issue with the World Curling site or your local server. Check that the Node server is running and that livescores.worldcurling.org is reachable.</div>';
+            }
+            if (standingsSummary) {
+              standingsSummary.innerHTML =
+                '<p class="text-rose-300 text-xs">Failed to fetch live standings.</p>';
+            }
+            if (leaderboardBody) {
+              leaderboardBody.innerHTML =
+                '<div class="px-4 py-3 text-rose-300 text-xs">Unable to calculate fantasy scores until standings are available.</div>';
+            }
+            if (lastUpdatedEl) {
+              lastUpdatedEl.textContent = "Last updated: error";
+            }
+          }
+        }
+
+        if (refreshBtn) {
+          refreshBtn.addEventListener("click", () => {
+            fetchAndRenderAll();
+          });
+        }
+
+        // Initial render
+        buildEntriesTable();
+        fetchAndRenderAll();
+        setInterval(fetchAndRenderAll, 5 * 60 * 1000); // every 5 minutes
+      })();
+    </script>
+  </body>
+</html>
+
