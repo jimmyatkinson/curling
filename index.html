@@ -242,24 +242,89 @@
           <div
             class="mt-4 overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/60"
           >
-            <div
-              class="grid grid-cols-[minmax(150px,1.1fr),repeat(6,minmax(120px,1fr))] gap-2 border-b border-slate-800 bg-slate-900/80 px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400"
-            >
-              <div>Entry</div>
-              <div class="text-center">M Top</div>
-              <div class="text-center">M Mid</div>
-              <div class="text-center">M Bot</div>
-              <div class="text-center">W Top</div>
-              <div class="text-center">W Mid</div>
-              <div class="text-center">W Bot</div>
+            <div class="overflow-x-auto">
+              <div class="min-w-[870px]">
+                <div
+                  class="grid grid-cols-[minmax(150px,1.1fr),repeat(6,minmax(120px,1fr))] gap-2 border-b border-slate-800 bg-slate-900/80 px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400"
+                >
+                  <div>Entry</div>
+                  <div class="text-center">M Top</div>
+                  <div class="text-center">M Mid</div>
+                  <div class="text-center">M Bot</div>
+                  <div class="text-center">W Top</div>
+                  <div class="text-center">W Mid</div>
+                  <div class="text-center">W Bot</div>
+                </div>
+                <div
+                  id="entries-body"
+                  class="max-h-[360px] divide-y divide-slate-800 overflow-y-auto text-xs"
+                >
+                  <!-- Populated by script -->
+                  <div class="px-4 py-3 text-slate-400">
+                    Loading entries&hellip;
+                  </div>
+                </div>
+              </div>
             </div>
-            <div
-              id="entries-body"
-              class="max-h-[360px] divide-y divide-slate-800 overflow-auto text-xs"
+          </div>
+        </section>
+
+        <!-- Smack Board -->
+        <section id="smack-board" class="mb-12">
+          <h3 class="text-xl font-semibold tracking-tight">
+            Smack Board
+          </h3>
+          <p class="mt-2 text-sm text-slate-300">
+            Total free-for-all. Talk your smack below. No sign-in. No gatekeeping.
+          </p>
+
+          <div class="mt-4 grid gap-4 lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)]">
+            <form
+              id="smack-form"
+              class="rounded-2xl border border-slate-800 bg-slate-900/60 p-4"
             >
-              <!-- Populated by script -->
-              <div class="px-4 py-3 text-slate-400">
-                Loading entries&hellip;
+              <div class="space-y-3">
+                <div>
+                  <label for="smack-name" class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">Name</label>
+                  <input
+                    id="smack-name"
+                    type="text"
+                    maxlength="40"
+                    placeholder="Anonymous"
+                    class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none ring-cyan-300/0 transition focus:border-cyan-400 focus:ring-2"
+                  />
+                </div>
+
+                <div>
+                  <label for="smack-message" class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">Smack</label>
+                  <textarea
+                    id="smack-message"
+                    maxlength="300"
+                    rows="4"
+                    placeholder="Your rival's lineup is basically a house of cards..."
+                    class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none ring-cyan-300/0 transition focus:border-cyan-400 focus:ring-2"
+                    required
+                  ></textarea>
+                </div>
+
+                <div class="flex items-center justify-between gap-3">
+                  <p id="smack-status" class="text-xs text-slate-400">Post something spicy.</p>
+                  <button
+                    type="submit"
+                    class="inline-flex items-center rounded-full border border-cyan-500/60 bg-cyan-500/10 px-4 py-1.5 text-xs font-semibold text-cyan-200 hover:bg-cyan-500/20"
+                  >
+                    Post Smack
+                  </button>
+                </div>
+              </div>
+            </form>
+
+            <div class="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/60">
+              <div class="border-b border-slate-800 bg-slate-900/80 px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                Latest Trash Talk
+              </div>
+              <div id="smack-posts" class="max-h-[360px] divide-y divide-slate-800 overflow-y-auto">
+                <div class="px-4 py-3 text-xs text-slate-400">Loading smack board&hellip;</div>
               </div>
             </div>
           </div>
@@ -681,9 +746,107 @@
         const refreshBtn = document.getElementById("refresh-standings");
         const entriesBody = document.getElementById("entries-body");
         const leaderboardBody = document.getElementById("leaderboard-body");
+        const smackForm = document.getElementById("smack-form");
+        const smackNameInput = document.getElementById("smack-name");
+        const smackMessageInput = document.getElementById("smack-message");
+        const smackStatus = document.getElementById("smack-status");
+        const smackPostsEl = document.getElementById("smack-posts");
 
         // Local backend endpoint that scrapes World Curling standings.
         const API_URL = "/api/standings";
+        const SMACK_API_URL = "/api/smack";
+
+        function escapeHtml(text) {
+          return String(text)
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#39;");
+        }
+
+        function renderSmackPosts(posts) {
+          if (!smackPostsEl) return;
+
+          if (!Array.isArray(posts) || posts.length === 0) {
+            smackPostsEl.innerHTML =
+              '<div class="px-4 py-3 text-xs text-slate-400">No smack yet. Be the first chirp.</div>';
+            return;
+          }
+
+          smackPostsEl.innerHTML = posts
+            .map((post) => {
+              const when = new Date(post.createdAt);
+              const ts = Number.isNaN(when.getTime())
+                ? "just now"
+                : when.toLocaleString();
+
+              return `
+                <article class="px-4 py-3">
+                  <div class="flex items-center justify-between gap-2">
+                    <p class="text-xs font-semibold text-cyan-200">${escapeHtml(
+                      post.name || "Anonymous"
+                    )}</p>
+                    <p class="text-[11px] text-slate-500">${escapeHtml(ts)}</p>
+                  </div>
+                  <p class="mt-1 text-sm text-slate-200 break-words">${escapeHtml(
+                    post.message || ""
+                  )}</p>
+                </article>
+              `;
+            })
+            .join("");
+        }
+
+        async function loadSmackPosts() {
+          try {
+            const res = await fetch(SMACK_API_URL);
+            if (!res.ok) throw new Error("Failed to load smack posts");
+
+            const data = await res.json();
+            renderSmackPosts(Array.isArray(data.posts) ? data.posts : []);
+          } catch (err) {
+            console.error(err);
+            if (smackPostsEl) {
+              smackPostsEl.innerHTML =
+                '<div class="px-4 py-3 text-xs text-rose-300">Could not load smack board right now.</div>';
+            }
+          }
+        }
+
+        async function submitSmackPost(event) {
+          event.preventDefault();
+          if (!smackMessageInput) return;
+
+          const name = (smackNameInput?.value || "").trim() || "Anonymous";
+          const message = smackMessageInput.value.trim();
+
+          if (!message) {
+            if (smackStatus) smackStatus.textContent = "Add a message before posting.";
+            return;
+          }
+
+          if (smackStatus) smackStatus.textContent = "Posting...";
+
+          try {
+            const res = await fetch(SMACK_API_URL, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ name, message }),
+            });
+
+            if (!res.ok) throw new Error("Failed to post smack");
+
+            if (smackMessageInput) smackMessageInput.value = "";
+            if (smackStatus) smackStatus.textContent = "Smack posted.";
+            loadSmackPosts();
+          } catch (err) {
+            console.error(err);
+            if (smackStatus) smackStatus.textContent = "Post failed. Try again.";
+          }
+        }
 
         function buildEntriesTable() {
           if (!entriesBody) return;
@@ -987,12 +1150,17 @@
           });
         }
 
+        if (smackForm) {
+          smackForm.addEventListener("submit", submitSmackPost);
+        }
+
         // Initial render
         buildEntriesTable();
         fetchAndRenderAll();
+        loadSmackPosts();
         setInterval(fetchAndRenderAll, 5 * 60 * 1000); // every 5 minutes
+        setInterval(loadSmackPosts, 20 * 1000); // every 20 seconds
       })();
     </script>
   </body>
 </html>
-
