@@ -244,7 +244,7 @@ app.get("/api/smack", (req, res) => {
   res.json({ posts: smackPosts });
 });
 
-app.post("/api/smack", async (req, res) => {
+app.post("/api/smack", (req, res) => {
 
 // In-memory smack board posts (newest first).
 const smackPosts = [];
@@ -279,7 +279,7 @@ app.post("/api/smack", (req, res) => {
   };
 
   smackPosts.unshift(post);
-  await saveSmackPostsToDisk();
+  saveSmackPostsToDisk().catch((err) => {\n    console.error("Failed to persist smack posts:", err);\n  });
 
   return res.status(201).json({ post });
 });
