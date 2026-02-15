@@ -71,30 +71,30 @@
             </div>
           </div>
 
-          <!-- Quick standings summary card -->
+          <!-- Upcoming games card -->
           <aside
             class="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-lg shadow-black/40"
           >
             <div class="flex items-center justify-between gap-2">
               <h3 class="text-sm font-semibold tracking-tight text-slate-100">
-                Current Standings Snapshot
+                Next 3 Upcoming Games
               </h3>
               <span
-                id="standings-last-updated"
+                id="games-last-updated"
                 class="text-[11px] text-slate-400"
               >
                 Updating…
               </span>
             </div>
             <p class="mt-1 text-xs text-slate-400">
-              Pulled automatically from official World Curling Olympic standings.
+              Upcoming draws across men&#39;s and women&#39;s events.
             </p>
             <div
-              id="standings-summary"
-              class="mt-4 space-y-1 text-xs text-slate-200"
+              id="upcoming-games"
+              class="mt-4 space-y-2 text-xs text-slate-200"
             >
               <p class="text-slate-400">
-                Loading latest standings&hellip;
+                Loading upcoming games&hellip;
               </p>
             </div>
           </aside>
@@ -168,9 +168,7 @@
                 class="border-b border-slate-800 bg-slate-900/80 px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400"
               >
                 <div class="mb-1 text-xs text-slate-300">Men&#39;s Standings</div>
-                <div
-                  class="grid grid-cols-[40px,minmax(80px,1.5fr),repeat(3,minmax(50px,72px))]"
-                >
+                <div class="grid grid-cols-[40px,minmax(110px,1.5fr),repeat(3,minmax(50px,72px))]">
                   <div class="text-left">Rank</div>
                   <div class="text-left">Team</div>
                   <div class="text-center">GP</div>
@@ -198,9 +196,7 @@
                 <div class="mb-1 text-xs text-slate-300">
                   Women&#39;s Standings
                 </div>
-                <div
-                  class="grid grid-cols-[40px,minmax(80px,1.5fr),repeat(3,minmax(50px,72px))]"
-                >
+                <div class="grid grid-cols-[40px,minmax(110px,1.5fr),repeat(3,minmax(50px,72px))]">
                   <div class="text-left">Rank</div>
                   <div class="text-left">Team</div>
                   <div class="text-center">GP</div>
@@ -739,10 +735,8 @@
         const standingsBodyWomen = document.getElementById(
           "standings-body-women"
         );
-        const standingsSummary = document.getElementById("standings-summary");
-        const lastUpdatedEl = document.getElementById(
-          "standings-last-updated"
-        );
+        const upcomingGamesEl = document.getElementById("upcoming-games");
+        const gamesLastUpdatedEl = document.getElementById("games-last-updated");
         const refreshBtn = document.getElementById("refresh-standings");
         const entriesBody = document.getElementById("entries-body");
         const leaderboardBody = document.getElementById("leaderboard-body");
@@ -755,6 +749,24 @@
         // Local backend endpoint that scrapes World Curling standings.
         const API_URL = "/api/standings";
         const SMACK_API_URL = "/api/smack";
+        const FLAG_BY_CODE = {
+          CAN: "🇨🇦",
+          CHN: "🇨🇳",
+          CZE: "🇨🇿",
+          GBR: "🇬🇧",
+          GER: "🇩🇪",
+          ITA: "🇮🇹",
+          NOR: "🇳🇴",
+          SUI: "🇨🇭",
+          SWE: "🇸🇪",
+          USA: "🇺🇸",
+          DEN: "🇩🇰",
+          JPN: "🇯🇵",
+          KOR: "🇰🇷",
+        };
+
+        let latestStandingsMaps = { menByCode: {}, womenByCode: {} };
+        let latestUpcomingGames = [];
 
         function escapeHtml(text) {
           return String(text)
@@ -1005,7 +1017,107 @@
             .join("");
         }
 
-        function renderStandingsTable(rows, targetEl) {
+        function getNextMatchForTeam(teamCode) {
+          return latestUpcomingGames.find(
+            (game) => game.teamACode === teamCode || game.teamBCode === teamCode
+          );
+        }
+
+        function formatTeamRecord(teamRow) {
+          if (!teamRow) return "0-0";
+          const wins = teamRow.wins ?? 0;
+          const losses = teamRow.losses ?? 0;
+          return `${wins}-${losses}`;
+        }
+
+        function renderUpcomingGames(games) {
+          if (!upcomingGamesEl) return;
+          if (!Array.isArray(games) || !games.length) {
+            upcomingGamesEl.innerHTML =
+              '<p class="text-slate-400">No upcoming games available.</p>';
+            return;
+          }
+
+          upcomingGamesEl.innerHTML = games.slice(0, 3).map((game) => {
+            const when = new Date(game.startTime);
+            const whenText = Number.isNaN(when.getTime())
+              ? "TBD"
+              : when.toLocaleString([], {
+                  weekday: "short",
+                  month: "short",
+                  day: "numeric",
+                  hour: "numeric",
+                  minute: "2-digit",
+                });
+
+            return `
+              <div class="rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2">
+                <p class="text-[11px] uppercase tracking-wide text-slate-400">${escapeHtml(game.event || "Event")}</p>
+                <p class="mt-1 text-sm font-semibold text-slate-100">${escapeHtml(game.teamA || "TBD")} vs ${escapeHtml(game.teamB || "TBD")}</p>
+                <p class="mt-1 text-[11px] text-slate-400">${escapeHtml(whenText)}</p>
+              </div>
+            `;
+          }).join("");
+        }
+
+        function buildRosterDetails(teamCode, eventKey) {
+          const hasTeam = (entry) => {
+            const teamFields = eventKey === "men"
+              ? [entry.mensTop, entry.mensMid, entry.mensBottom]
+              : [entry.womensTop, entry.womensMid, entry.womensBottom];
+
+            return teamFields.some((teamName) => COUNTRY_CODE[teamName] === teamCode);
+          };
+
+          const matchingEntries = entries.filter(hasTeam);
+          if (!matchingEntries.length) {
+            return '<p class="text-xs text-slate-400">No fantasy entries currently roster this team.</p>';
+          }
+
+          return matchingEntries
+            .map((entry) => {
+              const teamFields = [
+                { label: "M Top", teamName: entry.mensTop, event: "men" },
+                { label: "M Mid", teamName: entry.mensMid, event: "men" },
+                { label: "M Bot", teamName: entry.mensBottom, event: "men" },
+                { label: "W Top", teamName: entry.womensTop, event: "women" },
+                { label: "W Mid", teamName: entry.womensMid, event: "women" },
+                { label: "W Bot", teamName: entry.womensBottom, event: "women" },
+              ];
+
+              const rosterRows = teamFields
+                .map((item) => {
+                  const code = COUNTRY_CODE[item.teamName];
+                  const standingsRow = item.event === "men"
+                    ? latestStandingsMaps.menByCode[code]
+                    : latestStandingsMaps.womenByCode[code];
+                  const nextMatch = getNextMatchForTeam(code);
+                  const nextMatchTime = nextMatch
+                    ? new Date(nextMatch.startTime).toLocaleString()
+                    : "TBD";
+
+                  return `
+                    <li class="grid grid-cols-[52px,minmax(0,1fr),60px,minmax(130px,1fr)] gap-2 py-1 text-[11px] text-slate-300">
+                      <span class="text-slate-500">${item.label}</span>
+                      <span class="font-medium text-slate-100">${escapeHtml(code || item.teamName || "TBD")}</span>
+                      <span>${formatTeamRecord(standingsRow)}</span>
+                      <span class="truncate text-slate-400">${escapeHtml(nextMatchTime)}</span>
+                    </li>
+                  `;
+                })
+                .join("");
+
+              return `
+                <div class="rounded-lg border border-slate-800 bg-slate-950/60 p-3">
+                  <p class="text-xs font-semibold text-cyan-200">${escapeHtml(entry.name)}</p>
+                  <ul class="mt-2 divide-y divide-slate-800">${rosterRows}</ul>
+                </div>
+              `;
+            })
+            .join("");
+        }
+
+        function renderStandingsTable(rows, targetEl, eventKey) {
           if (!targetEl) return;
           if (!rows.length) {
             targetEl.innerHTML =
@@ -1013,8 +1125,6 @@
             return;
           }
 
-          // Deduplicate by country code in case the source table contains
-          // duplicate rows for the same team (e.g., multiple groupings).
           const seen = new Set();
           const uniqueRows = [];
           for (const row of rows) {
@@ -1031,57 +1141,41 @@
           targetEl.innerHTML = uniqueRows
             .map((row, index) => {
               const name = row.team ?? "Unknown";
-              const games =
-                row.games != null
-                  ? row.games
-                  : (row.wins ?? 0) + (row.losses ?? 0);
+              const games = row.games != null ? row.games : (row.wins ?? 0) + (row.losses ?? 0);
               const wins = row.wins ?? 0;
               const losses = row.losses ?? 0;
-
-              const displayName =
-                extractCodeFromStandingsName(name) || name || "Unknown";
+              const code = extractCodeFromStandingsName(name) || name || "UNK";
+              const flag = FLAG_BY_CODE[code] || "🏳️";
 
               return `
-                <div class="grid grid-cols-[40px,minmax(80px,1.5fr),repeat(3,minmax(50px,72px))] px-4 py-2 hover:bg-slate-900/80">
-                  <div class="text-left font-semibold text-slate-200">${
-                    index + 1
-                  }</div>
-                  <div class="text-slate-100 whitespace-nowrap">${displayName}</div>
+                <button type="button" data-team-code="${escapeHtml(code)}" data-event="${escapeHtml(eventKey)}" class="standings-team-toggle grid w-full grid-cols-[40px,minmax(110px,1.5fr),repeat(3,minmax(50px,72px))] px-4 py-2 text-left hover:bg-slate-900/80">
+                  <div class="text-left font-semibold text-slate-200">${index + 1}</div>
+                  <div class="text-slate-100 whitespace-nowrap">${flag} ${escapeHtml(code)}</div>
                   <div class="text-center text-slate-200">${games}</div>
                   <div class="text-center text-emerald-300">${wins}</div>
                   <div class="text-center text-rose-300">${losses}</div>
-                </div>
+                </button>
+                <div data-details-for="${escapeHtml(code)}-${escapeHtml(eventKey)}" class="hidden border-t border-slate-800 bg-slate-900/40 px-4 py-3"></div>
               `;
             })
             .join("");
-        }
 
-        function renderSnapshotFromFantasy(scoredEntries) {
-          if (!standingsSummary) return;
-          if (!scoredEntries.length) {
-            standingsSummary.innerHTML =
-              '<p class="text-slate-400">No fantasy scoring data available yet.</p>';
-            return;
-          }
+          targetEl.querySelectorAll(".standings-team-toggle").forEach((button) => {
+            button.addEventListener("click", () => {
+              const teamCode = button.getAttribute("data-team-code") || "";
+              const event = button.getAttribute("data-event") || "men";
+              const details = targetEl.querySelector(`[data-details-for="${teamCode}-${event}"]`);
+              if (!details) return;
 
-          const top = scoredEntries.slice(0, 3);
-          standingsSummary.innerHTML = top
-            .map((row, index) => {
-              const name = row.name ?? "Unknown entry";
-              const points = row.totalPoints ?? 0;
-              return `
-                <div class="flex items-center justify-between gap-2">
-                  <div class="flex items-center gap-2">
-                    <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-slate-800 text-[11px] text-slate-300">${
-                      index + 1
-                    }</span>
-                    <span class="truncate text-slate-100">${name}</span>
-                  </div>
-                  <span class="text-[11px] text-slate-300">${points} pts</span>
-                </div>
-              `;
-            })
-            .join("");
+              const isHidden = details.classList.contains("hidden");
+              targetEl.querySelectorAll('[data-details-for]').forEach((el) => el.classList.add("hidden"));
+
+              if (isHidden) {
+                details.innerHTML = buildRosterDetails(teamCode, event);
+                details.classList.remove("hidden");
+              }
+            });
+          });
         }
 
         async function fetchAndRenderAll() {
@@ -1109,16 +1203,18 @@
             const men = maps.men;
             const women = maps.women;
 
-            renderStandingsTable(men, standingsBodyMen);
-            renderStandingsTable(women, standingsBodyWomen);
+            renderStandingsTable(men, standingsBodyMen, "men");
+            renderStandingsTable(women, standingsBodyWomen, "women");
 
             const scoredEntries = calculateScores(maps);
             renderLeaderboard(scoredEntries);
-            renderSnapshotFromFantasy(scoredEntries);
+            latestStandingsMaps = maps;
+            latestUpcomingGames = Array.isArray(data.upcoming) ? data.upcoming : [];
+            renderUpcomingGames(latestUpcomingGames);
 
-            if (lastUpdatedEl) {
+            if (gamesLastUpdatedEl) {
               const now = new Date();
-              lastUpdatedEl.textContent = `Last updated: ${now.toLocaleTimeString()}`;
+              gamesLastUpdatedEl.textContent = `Last updated: ${now.toLocaleTimeString()}`;
             }
           } catch (err) {
             console.error(err);
@@ -1130,16 +1226,16 @@
               standingsBodyWomen.innerHTML =
                 '<div class="px-4 py-3 text-rose-300">Unable to load standings. This may be a temporary issue with the World Curling site or your local server. Check that the Node server is running and that livescores.worldcurling.org is reachable.</div>';
             }
-            if (standingsSummary) {
-              standingsSummary.innerHTML =
-                '<p class="text-rose-300 text-xs">Failed to fetch live standings.</p>';
+            if (upcomingGamesEl) {
+              upcomingGamesEl.innerHTML =
+                '<p class="text-rose-300 text-xs">Failed to fetch upcoming games.</p>';
             }
             if (leaderboardBody) {
               leaderboardBody.innerHTML =
                 '<div class="px-4 py-3 text-rose-300 text-xs">Unable to calculate fantasy scores until standings are available.</div>';
             }
-            if (lastUpdatedEl) {
-              lastUpdatedEl.textContent = "Last updated: error";
+            if (gamesLastUpdatedEl) {
+              gamesLastUpdatedEl.textContent = "Last updated: error";
             }
           }
         }
