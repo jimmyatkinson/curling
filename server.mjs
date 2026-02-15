@@ -8,7 +8,6 @@ import { fileURLToPath } from "url";
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Serve the static frontend (index.html, etc.)
 app.use(express.static("."));
 app.use(express.json());
 
@@ -21,10 +20,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const SMACK_POSTS_FILE = path.join(__dirname, "smack-posts.json");
 
-/**
- * Fetch and parse a standings table from World Curling.
- * eventId: 1 = Men, 2 = Women (per site nav).
- */
 async function fetchStandingsForEvent(eventId) {
   const url = `${WORLD_CURLING_BASE}?EventID=${eventId}`;
 
