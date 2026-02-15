@@ -250,6 +250,19 @@ app.get("/api/smack", (req, res) => {
 });
 
 app.post("/api/smack", async (req, res) => {
+
+// In-memory smack board posts (newest first).
+const smackPosts = [];
+let smackPostId = 1;
+const MAX_SMACK_POSTS = 200;
+
+app.get("/api/smack", (req, res) => {
+  res.json({
+    posts: smackPosts,
+  });
+});
+
+app.post("/api/smack", (req, res) => {
   const nameRaw = typeof req.body?.name === "string" ? req.body.name : "Anonymous";
   const messageRaw = typeof req.body?.message === "string" ? req.body.message : "";
 
@@ -258,6 +271,9 @@ app.post("/api/smack", async (req, res) => {
 
   if (!message) {
     return res.status(400).json({ error: "Message is required." });
+    return res.status(400).json({
+      error: "Message is required.",
+    });
   }
 
   const post = {
@@ -273,6 +289,15 @@ app.post("/api/smack", async (req, res) => {
   return res.status(201).json({ post });
 });
 
+
+  if (smackPosts.length > MAX_SMACK_POSTS) {
+    smackPosts.length = MAX_SMACK_POSTS;
+  }
+
+  res.status(201).json({ post });
+});
+
+// Simple in-memory cache to avoid hammering World Curling.
 let cache = {
   men: null,
   women: null,
