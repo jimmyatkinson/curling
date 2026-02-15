@@ -4,6 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Fantasy Olympic Curling League</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="shortcut icon" href="/favicon.svg" />
     <!-- Tailwind CSS via CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
@@ -71,30 +73,30 @@
             </div>
           </div>
 
-          <!-- Quick standings summary card -->
+          <!-- Upcoming games card -->
           <aside
             class="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-lg shadow-black/40"
           >
             <div class="flex items-center justify-between gap-2">
               <h3 class="text-sm font-semibold tracking-tight text-slate-100">
-                Current Standings Snapshot
+                Next 3 Upcoming Games
               </h3>
               <span
-                id="standings-last-updated"
+                id="games-last-updated"
                 class="text-[11px] text-slate-400"
               >
                 Updating…
               </span>
             </div>
             <p class="mt-1 text-xs text-slate-400">
-              Pulled automatically from official World Curling Olympic standings.
+              Upcoming draws across men&#39;s and women&#39;s events.
             </p>
             <div
-              id="standings-summary"
-              class="mt-4 space-y-1 text-xs text-slate-200"
+              id="upcoming-games"
+              class="mt-4 space-y-2 text-xs text-slate-200"
             >
               <p class="text-slate-400">
-                Loading latest standings&hellip;
+                Loading upcoming games&hellip;
               </p>
             </div>
           </aside>
@@ -168,9 +170,7 @@
                 class="border-b border-slate-800 bg-slate-900/80 px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400"
               >
                 <div class="mb-1 text-xs text-slate-300">Men&#39;s Standings</div>
-                <div
-                  class="grid grid-cols-[40px,minmax(80px,1.5fr),repeat(3,minmax(50px,72px))]"
-                >
+                <div class="grid grid-cols-[40px,minmax(110px,1.5fr),repeat(3,minmax(50px,72px))]">
                   <div class="text-left">Rank</div>
                   <div class="text-left">Team</div>
                   <div class="text-center">GP</div>
@@ -198,9 +198,7 @@
                 <div class="mb-1 text-xs text-slate-300">
                   Women&#39;s Standings
                 </div>
-                <div
-                  class="grid grid-cols-[40px,minmax(80px,1.5fr),repeat(3,minmax(50px,72px))]"
-                >
+                <div class="grid grid-cols-[40px,minmax(110px,1.5fr),repeat(3,minmax(50px,72px))]">
                   <div class="text-left">Rank</div>
                   <div class="text-left">Team</div>
                   <div class="text-center">GP</div>
@@ -242,24 +240,89 @@
           <div
             class="mt-4 overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/60"
           >
-            <div
-              class="grid grid-cols-[minmax(150px,1.1fr),repeat(6,minmax(120px,1fr))] gap-2 border-b border-slate-800 bg-slate-900/80 px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400"
-            >
-              <div>Entry</div>
-              <div class="text-center">M Top</div>
-              <div class="text-center">M Mid</div>
-              <div class="text-center">M Bot</div>
-              <div class="text-center">W Top</div>
-              <div class="text-center">W Mid</div>
-              <div class="text-center">W Bot</div>
+            <div class="overflow-x-auto">
+              <div class="min-w-[870px]">
+                <div
+                  class="grid grid-cols-[minmax(150px,1.1fr),repeat(6,minmax(120px,1fr))] gap-2 border-b border-slate-800 bg-slate-900/80 px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400"
+                >
+                  <div>Entry</div>
+                  <div class="text-center">M Top</div>
+                  <div class="text-center">M Mid</div>
+                  <div class="text-center">M Bot</div>
+                  <div class="text-center">W Top</div>
+                  <div class="text-center">W Mid</div>
+                  <div class="text-center">W Bot</div>
+                </div>
+                <div
+                  id="entries-body"
+                  class="max-h-[360px] divide-y divide-slate-800 overflow-y-auto text-xs"
+                >
+                  <!-- Populated by script -->
+                  <div class="px-4 py-3 text-slate-400">
+                    Loading entries&hellip;
+                  </div>
+                </div>
+              </div>
             </div>
-            <div
-              id="entries-body"
-              class="max-h-[360px] divide-y divide-slate-800 overflow-auto text-xs"
+          </div>
+        </section>
+
+        <!-- Smack Board -->
+        <section id="smack-board" class="mb-12">
+          <h3 class="text-xl font-semibold tracking-tight">
+            Smack Board
+          </h3>
+          <p class="mt-2 text-sm text-slate-300">
+            Total free-for-all. Talk your smack below. No sign-in. No gatekeeping.
+          </p>
+
+          <div class="mt-4 grid gap-4 lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)]">
+            <form
+              id="smack-form"
+              class="rounded-2xl border border-slate-800 bg-slate-900/60 p-4"
             >
-              <!-- Populated by script -->
-              <div class="px-4 py-3 text-slate-400">
-                Loading entries&hellip;
+              <div class="space-y-3">
+                <div>
+                  <label for="smack-name" class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">Name</label>
+                  <input
+                    id="smack-name"
+                    type="text"
+                    maxlength="40"
+                    placeholder="Anonymous"
+                    class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none ring-cyan-300/0 transition focus:border-cyan-400 focus:ring-2"
+                  />
+                </div>
+
+                <div>
+                  <label for="smack-message" class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">Smack</label>
+                  <textarea
+                    id="smack-message"
+                    maxlength="300"
+                    rows="4"
+                    placeholder="Your rival's lineup is basically a house of cards..."
+                    class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none ring-cyan-300/0 transition focus:border-cyan-400 focus:ring-2"
+                    required
+                  ></textarea>
+                </div>
+
+                <div class="flex items-center justify-between gap-3">
+                  <p id="smack-status" class="text-xs text-slate-400">Post something spicy.</p>
+                  <button
+                    type="submit"
+                    class="inline-flex items-center rounded-full border border-cyan-500/60 bg-cyan-500/10 px-4 py-1.5 text-xs font-semibold text-cyan-200 hover:bg-cyan-500/20"
+                  >
+                    Post Smack
+                  </button>
+                </div>
+              </div>
+            </form>
+
+            <div class="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/60">
+              <div class="border-b border-slate-800 bg-slate-900/80 px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                Latest Trash Talk
+              </div>
+              <div id="smack-posts" class="max-h-[360px] divide-y divide-slate-800 overflow-y-auto">
+                <div class="px-4 py-3 text-xs text-slate-400">Loading smack board&hellip;</div>
               </div>
             </div>
           </div>
@@ -674,16 +737,130 @@
         const standingsBodyWomen = document.getElementById(
           "standings-body-women"
         );
-        const standingsSummary = document.getElementById("standings-summary");
-        const lastUpdatedEl = document.getElementById(
-          "standings-last-updated"
-        );
+        const upcomingGamesEl = document.getElementById("upcoming-games");
+        const gamesLastUpdatedEl = document.getElementById("games-last-updated");
         const refreshBtn = document.getElementById("refresh-standings");
         const entriesBody = document.getElementById("entries-body");
         const leaderboardBody = document.getElementById("leaderboard-body");
+        const smackForm = document.getElementById("smack-form");
+        const smackNameInput = document.getElementById("smack-name");
+        const smackMessageInput = document.getElementById("smack-message");
+        const smackStatus = document.getElementById("smack-status");
+        const smackPostsEl = document.getElementById("smack-posts");
 
         // Local backend endpoint that scrapes World Curling standings.
         const API_URL = "/api/standings";
+        const SMACK_API_URL = "/api/smack";
+        const FLAG_BY_CODE = {
+          CAN: "🇨🇦",
+          CHN: "🇨🇳",
+          CZE: "🇨🇿",
+          GBR: "🇬🇧",
+          GER: "🇩🇪",
+          ITA: "🇮🇹",
+          NOR: "🇳🇴",
+          SUI: "🇨🇭",
+          SWE: "🇸🇪",
+          USA: "🇺🇸",
+          DEN: "🇩🇰",
+          JPN: "🇯🇵",
+          KOR: "🇰🇷",
+        };
+
+        let latestStandingsMaps = { menByCode: {}, womenByCode: {} };
+        let latestUpcomingGames = [];
+
+        function escapeHtml(text) {
+          return String(text)
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#39;");
+        }
+
+        function renderSmackPosts(posts) {
+          if (!smackPostsEl) return;
+
+          if (!Array.isArray(posts) || posts.length === 0) {
+            smackPostsEl.innerHTML =
+              '<div class="px-4 py-3 text-xs text-slate-400">No smack yet. Be the first chirp.</div>';
+            return;
+          }
+
+          smackPostsEl.innerHTML = posts
+            .map((post) => {
+              const when = new Date(post.createdAt);
+              const ts = Number.isNaN(when.getTime())
+                ? "just now"
+                : when.toLocaleString();
+
+              return `
+                <article class="px-4 py-3">
+                  <div class="flex items-center justify-between gap-2">
+                    <p class="text-xs font-semibold text-cyan-200">${escapeHtml(
+                      post.name || "Anonymous"
+                    )}</p>
+                    <p class="text-[11px] text-slate-500">${escapeHtml(ts)}</p>
+                  </div>
+                  <p class="mt-1 text-sm text-slate-200 break-words">${escapeHtml(
+                    post.message || ""
+                  )}</p>
+                </article>
+              `;
+            })
+            .join("");
+        }
+
+        async function loadSmackPosts() {
+          try {
+            const res = await fetch(SMACK_API_URL);
+            if (!res.ok) throw new Error("Failed to load smack posts");
+
+            const data = await res.json();
+            renderSmackPosts(Array.isArray(data.posts) ? data.posts : []);
+          } catch (err) {
+            console.error(err);
+            if (smackPostsEl) {
+              smackPostsEl.innerHTML =
+                '<div class="px-4 py-3 text-xs text-rose-300">Could not load smack board right now.</div>';
+            }
+          }
+        }
+
+        async function submitSmackPost(event) {
+          event.preventDefault();
+          if (!smackMessageInput) return;
+
+          const name = (smackNameInput?.value || "").trim() || "Anonymous";
+          const message = smackMessageInput.value.trim();
+
+          if (!message) {
+            if (smackStatus) smackStatus.textContent = "Add a message before posting.";
+            return;
+          }
+
+          if (smackStatus) smackStatus.textContent = "Posting...";
+
+          try {
+            const res = await fetch(SMACK_API_URL, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ name, message }),
+            });
+
+            if (!res.ok) throw new Error("Failed to post smack");
+
+            if (smackMessageInput) smackMessageInput.value = "";
+            if (smackStatus) smackStatus.textContent = "Smack posted.";
+            loadSmackPosts();
+          } catch (err) {
+            console.error(err);
+            if (smackStatus) smackStatus.textContent = "Post failed. Try again.";
+          }
+        }
 
         function buildEntriesTable() {
           if (!entriesBody) return;
@@ -842,7 +1019,107 @@
             .join("");
         }
 
-        function renderStandingsTable(rows, targetEl) {
+        function getNextMatchForTeam(teamCode) {
+          return latestUpcomingGames.find(
+            (game) => game.teamACode === teamCode || game.teamBCode === teamCode
+          );
+        }
+
+        function formatTeamRecord(teamRow) {
+          if (!teamRow) return "0-0";
+          const wins = teamRow.wins ?? 0;
+          const losses = teamRow.losses ?? 0;
+          return `${wins}-${losses}`;
+        }
+
+        function renderUpcomingGames(games) {
+          if (!upcomingGamesEl) return;
+          if (!Array.isArray(games) || !games.length) {
+            upcomingGamesEl.innerHTML =
+              '<p class="text-slate-400">No upcoming games available.</p>';
+            return;
+          }
+
+          upcomingGamesEl.innerHTML = games.slice(0, 3).map((game) => {
+            const when = new Date(game.startTime);
+            const whenText = Number.isNaN(when.getTime())
+              ? "TBD"
+              : when.toLocaleString([], {
+                  weekday: "short",
+                  month: "short",
+                  day: "numeric",
+                  hour: "numeric",
+                  minute: "2-digit",
+                });
+
+            return `
+              <div class="rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2">
+                <p class="text-[11px] uppercase tracking-wide text-slate-400">${escapeHtml(game.event || "Event")}</p>
+                <p class="mt-1 text-sm font-semibold text-slate-100">${escapeHtml(game.teamA || "TBD")} vs ${escapeHtml(game.teamB || "TBD")}</p>
+                <p class="mt-1 text-[11px] text-slate-400">${escapeHtml(whenText)}</p>
+              </div>
+            `;
+          }).join("");
+        }
+
+        function buildRosterDetails(teamCode, eventKey) {
+          const hasTeam = (entry) => {
+            const teamFields = eventKey === "men"
+              ? [entry.mensTop, entry.mensMid, entry.mensBottom]
+              : [entry.womensTop, entry.womensMid, entry.womensBottom];
+
+            return teamFields.some((teamName) => COUNTRY_CODE[teamName] === teamCode);
+          };
+
+          const matchingEntries = entries.filter(hasTeam);
+          if (!matchingEntries.length) {
+            return '<p class="text-xs text-slate-400">No fantasy entries currently roster this team.</p>';
+          }
+
+          return matchingEntries
+            .map((entry) => {
+              const teamFields = [
+                { label: "M Top", teamName: entry.mensTop, event: "men" },
+                { label: "M Mid", teamName: entry.mensMid, event: "men" },
+                { label: "M Bot", teamName: entry.mensBottom, event: "men" },
+                { label: "W Top", teamName: entry.womensTop, event: "women" },
+                { label: "W Mid", teamName: entry.womensMid, event: "women" },
+                { label: "W Bot", teamName: entry.womensBottom, event: "women" },
+              ];
+
+              const rosterRows = teamFields
+                .map((item) => {
+                  const code = COUNTRY_CODE[item.teamName];
+                  const standingsRow = item.event === "men"
+                    ? latestStandingsMaps.menByCode[code]
+                    : latestStandingsMaps.womenByCode[code];
+                  const nextMatch = getNextMatchForTeam(code);
+                  const nextMatchTime = nextMatch
+                    ? new Date(nextMatch.startTime).toLocaleString()
+                    : "TBD";
+
+                  return `
+                    <li class="grid grid-cols-[52px,minmax(0,1fr),60px,minmax(130px,1fr)] gap-2 py-1 text-[11px] text-slate-300">
+                      <span class="text-slate-500">${item.label}</span>
+                      <span class="font-medium text-slate-100">${escapeHtml(code || item.teamName || "TBD")}</span>
+                      <span>${formatTeamRecord(standingsRow)}</span>
+                      <span class="truncate text-slate-400">${escapeHtml(nextMatchTime)}</span>
+                    </li>
+                  `;
+                })
+                .join("");
+
+              return `
+                <div class="rounded-lg border border-slate-800 bg-slate-950/60 p-3">
+                  <p class="text-xs font-semibold text-cyan-200">${escapeHtml(entry.name)}</p>
+                  <ul class="mt-2 divide-y divide-slate-800">${rosterRows}</ul>
+                </div>
+              `;
+            })
+            .join("");
+        }
+
+        function renderStandingsTable(rows, targetEl, eventKey) {
           if (!targetEl) return;
           if (!rows.length) {
             targetEl.innerHTML =
@@ -850,8 +1127,6 @@
             return;
           }
 
-          // Deduplicate by country code in case the source table contains
-          // duplicate rows for the same team (e.g., multiple groupings).
           const seen = new Set();
           const uniqueRows = [];
           for (const row of rows) {
@@ -868,57 +1143,41 @@
           targetEl.innerHTML = uniqueRows
             .map((row, index) => {
               const name = row.team ?? "Unknown";
-              const games =
-                row.games != null
-                  ? row.games
-                  : (row.wins ?? 0) + (row.losses ?? 0);
+              const games = row.games != null ? row.games : (row.wins ?? 0) + (row.losses ?? 0);
               const wins = row.wins ?? 0;
               const losses = row.losses ?? 0;
-
-              const displayName =
-                extractCodeFromStandingsName(name) || name || "Unknown";
+              const code = extractCodeFromStandingsName(name) || name || "UNK";
+              const flag = FLAG_BY_CODE[code] || "🏳️";
 
               return `
-                <div class="grid grid-cols-[40px,minmax(80px,1.5fr),repeat(3,minmax(50px,72px))] px-4 py-2 hover:bg-slate-900/80">
-                  <div class="text-left font-semibold text-slate-200">${
-                    index + 1
-                  }</div>
-                  <div class="text-slate-100 whitespace-nowrap">${displayName}</div>
+                <button type="button" data-team-code="${escapeHtml(code)}" data-event="${escapeHtml(eventKey)}" class="standings-team-toggle grid w-full grid-cols-[40px,minmax(110px,1.5fr),repeat(3,minmax(50px,72px))] px-4 py-2 text-left hover:bg-slate-900/80">
+                  <div class="text-left font-semibold text-slate-200">${index + 1}</div>
+                  <div class="text-slate-100 whitespace-nowrap">${flag} ${escapeHtml(code)}</div>
                   <div class="text-center text-slate-200">${games}</div>
                   <div class="text-center text-emerald-300">${wins}</div>
                   <div class="text-center text-rose-300">${losses}</div>
-                </div>
+                </button>
+                <div data-details-for="${escapeHtml(code)}-${escapeHtml(eventKey)}" class="hidden border-t border-slate-800 bg-slate-900/40 px-4 py-3"></div>
               `;
             })
             .join("");
-        }
 
-        function renderSnapshotFromFantasy(scoredEntries) {
-          if (!standingsSummary) return;
-          if (!scoredEntries.length) {
-            standingsSummary.innerHTML =
-              '<p class="text-slate-400">No fantasy scoring data available yet.</p>';
-            return;
-          }
+          targetEl.querySelectorAll(".standings-team-toggle").forEach((button) => {
+            button.addEventListener("click", () => {
+              const teamCode = button.getAttribute("data-team-code") || "";
+              const event = button.getAttribute("data-event") || "men";
+              const details = targetEl.querySelector(`[data-details-for="${teamCode}-${event}"]`);
+              if (!details) return;
 
-          const top = scoredEntries.slice(0, 3);
-          standingsSummary.innerHTML = top
-            .map((row, index) => {
-              const name = row.name ?? "Unknown entry";
-              const points = row.totalPoints ?? 0;
-              return `
-                <div class="flex items-center justify-between gap-2">
-                  <div class="flex items-center gap-2">
-                    <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-slate-800 text-[11px] text-slate-300">${
-                      index + 1
-                    }</span>
-                    <span class="truncate text-slate-100">${name}</span>
-                  </div>
-                  <span class="text-[11px] text-slate-300">${points} pts</span>
-                </div>
-              `;
-            })
-            .join("");
+              const isHidden = details.classList.contains("hidden");
+              targetEl.querySelectorAll('[data-details-for]').forEach((el) => el.classList.add("hidden"));
+
+              if (isHidden) {
+                details.innerHTML = buildRosterDetails(teamCode, event);
+                details.classList.remove("hidden");
+              }
+            });
+          });
         }
 
         async function fetchAndRenderAll() {
@@ -946,16 +1205,18 @@
             const men = maps.men;
             const women = maps.women;
 
-            renderStandingsTable(men, standingsBodyMen);
-            renderStandingsTable(women, standingsBodyWomen);
+            renderStandingsTable(men, standingsBodyMen, "men");
+            renderStandingsTable(women, standingsBodyWomen, "women");
 
             const scoredEntries = calculateScores(maps);
             renderLeaderboard(scoredEntries);
-            renderSnapshotFromFantasy(scoredEntries);
+            latestStandingsMaps = maps;
+            latestUpcomingGames = Array.isArray(data.upcoming) ? data.upcoming : [];
+            renderUpcomingGames(latestUpcomingGames);
 
-            if (lastUpdatedEl) {
+            if (gamesLastUpdatedEl) {
               const now = new Date();
-              lastUpdatedEl.textContent = `Last updated: ${now.toLocaleTimeString()}`;
+              gamesLastUpdatedEl.textContent = `Last updated: ${now.toLocaleTimeString()}`;
             }
           } catch (err) {
             console.error(err);
@@ -967,16 +1228,16 @@
               standingsBodyWomen.innerHTML =
                 '<div class="px-4 py-3 text-rose-300">Unable to load standings. This may be a temporary issue with the World Curling site or your local server. Check that the Node server is running and that livescores.worldcurling.org is reachable.</div>';
             }
-            if (standingsSummary) {
-              standingsSummary.innerHTML =
-                '<p class="text-rose-300 text-xs">Failed to fetch live standings.</p>';
+            if (upcomingGamesEl) {
+              upcomingGamesEl.innerHTML =
+                '<p class="text-rose-300 text-xs">Failed to fetch upcoming games.</p>';
             }
             if (leaderboardBody) {
               leaderboardBody.innerHTML =
                 '<div class="px-4 py-3 text-rose-300 text-xs">Unable to calculate fantasy scores until standings are available.</div>';
             }
-            if (lastUpdatedEl) {
-              lastUpdatedEl.textContent = "Last updated: error";
+            if (gamesLastUpdatedEl) {
+              gamesLastUpdatedEl.textContent = "Last updated: error";
             }
           }
         }
@@ -987,12 +1248,17 @@
           });
         }
 
+        if (smackForm) {
+          smackForm.addEventListener("submit", submitSmackPost);
+        }
+
         // Initial render
         buildEntriesTable();
         fetchAndRenderAll();
+        loadSmackPosts();
         setInterval(fetchAndRenderAll, 5 * 60 * 1000); // every 5 minutes
+        setInterval(loadSmackPosts, 20 * 1000); // every 20 seconds
       })();
     </script>
   </body>
 </html>
-
