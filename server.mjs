@@ -71,7 +71,11 @@ async function fetchStandingsForEvent(eventId) {
       if (rowIndex === 0) return;
 
       const $row = $(tr);
-      const team = $row.find("a[href*='teamDetail']").first().text().trim();
+      const team = $row
+        .find("a[href*='teamDetail']")
+        .first()
+        .text()
+        .trim();
       if (!team) return;
 
       const nums = [];
@@ -88,12 +92,7 @@ async function fetchStandingsForEvent(eventId) {
       }
 
       const [, games, wins, losses] = nums;
-      rows.push({
-        team,
-        games: games ?? 0,
-        wins: wins ?? 0,
-        losses: losses ?? 0,
-      });
+      rows.push({ team, games: games ?? 0, wins: wins ?? 0, losses: losses ?? 0 });
     });
 
     return rows;
@@ -135,16 +134,14 @@ function extractCode(teamName) {
 function looksLikeUpcomingStatus(status) {
   const value = (status || "").trim().toLowerCase();
   if (!value) return true;
-  return !(
-    value.includes("final") ||
-    value.includes("finished") ||
-    value.includes("completed")
-  );
+  if (value.includes("final") || value.includes("finished") || value.includes("completed")) {
+    return false;
+  }
+  return true;
 }
 
 async function fetchUpcomingGamesForEvent(eventId, label) {
   const url = `${WORLD_CURLING_GAMES}?EventID=${eventId}`;
-
   try {
     const res = await fetch(url, {
       headers: {
@@ -152,7 +149,6 @@ async function fetchUpcomingGamesForEvent(eventId, label) {
         Accept: "text/html,application/xhtml+xml",
       },
     });
-
     if (!res.ok) {
       console.error(`World Curling games HTTP ${res.status} for EventID=${eventId}`);
       return [];
@@ -174,17 +170,13 @@ async function fetchUpcomingGamesForEvent(eventId, label) {
       if (!teamA || !teamB) return;
 
       const cells = [];
-      tds.each((__, td) =>
-        cells.push($(td).text().replace(/\s+/g, " ").trim())
-      );
+      tds.each((__, td) => cells.push($(td).text().replace(/\s+/g, " ").trim()));
 
       const date = cells[0] || "";
       const time = cells[1] || "";
-      const status =
-        cells.find((c) => /scheduled|live|final|start|complete|finished/i.test(c)) ||
-        "";
-
+      const status = cells.find((c) => /scheduled|live|final|start|complete|finished/i.test(c)) || "";
       const startTime = normalizeUtcDateTime(date, time);
+
       if (!startTime || !looksLikeUpcomingStatus(status)) return;
 
       games.push({
@@ -211,9 +203,11 @@ async function fetchUpcomingGames() {
     fetchUpcomingGamesForEvent(2, "Women"),
   ]);
 
-  return [...menGames, ...womenGames]
+  const all = [...menGames, ...womenGames]
     .filter((game) => Date.parse(game.startTime) >= Date.now() - 30 * 60 * 1000)
     .sort((a, b) => Date.parse(a.startTime) - Date.parse(b.startTime));
+
+  return all;
 }
 
 let smackPosts = [];
@@ -227,8 +221,7 @@ async function loadSmackPostsFromDisk() {
 
     smackPosts = parsed.filter((post) => typeof post?.message === "string");
     const maxId = smackPosts.reduce(
-      (acc, post) =>
-        typeof post?.id === "number" && post.id > acc ? post.id : acc,
+      (acc, post) => (typeof post.id === "number" && post.id > acc ? post.id : acc),
       0
     );
     smackPostId = maxId + 1;
@@ -240,15 +233,30 @@ async function loadSmackPostsFromDisk() {
 }
 
 async function saveSmackPostsToDisk() {
-  await fs.writeFile(SMACK_POSTS_FILE, JSON.stringify(smackPosts, null, 2), "utf8");
+  try {
+    await fs.writeFile(SMACK_POSTS_FILE, JSON.stringify(smackPosts, null, 2), "utf8");
+  } catch (err) {
+    console.error("Failed to persist smack posts:", err);
+  }
 }
 
 app.get("/api/smack", (req, res) => {
   res.json({ posts: smackPosts });
 });
 
-// Intentionally non-async handler so merge conflicts can't accidentally leave an
-// `await` in a non-async function again.
+app.post("/api/smack", async (req, res) => {
+
+// In-memory smack board posts (newest first).
+const smackPosts = [];
+let smackPostId = 1;
+const MAX_SMACK_POSTS = 200;
+
+app.get("/api/smack", (req, res) => {
+  res.json({
+    posts: smackPosts,
+  });
+});
+
 app.post("/api/smack", (req, res) => {
   const nameRaw = typeof req.body?.name === "string" ? req.body.name : "Anonymous";
   const messageRaw = typeof req.body?.message === "string" ? req.body.message : "";
@@ -258,6 +266,9 @@ app.post("/api/smack", (req, res) => {
 
   if (!message) {
     return res.status(400).json({ error: "Message is required." });
+    return res.status(400).json({
+      error: "Message is required.",
+    });
   }
 
   const post = {
@@ -268,13 +279,20 @@ app.post("/api/smack", (req, res) => {
   };
 
   smackPosts.unshift(post);
-  saveSmackPostsToDisk().catch((err) => {
-    console.error("Failed to persist smack posts:", err);
-  });
+  await saveSmackPostsToDisk();
 
   return res.status(201).json({ post });
 });
 
+
+  if (smackPosts.length > MAX_SMACK_POSTS) {
+    smackPosts.length = MAX_SMACK_POSTS;
+  }
+
+  res.status(201).json({ post });
+});
+
+// Simple in-memory cache to avoid hammering World Curling.
 let cache = {
   men: null,
   women: null,
@@ -322,14 +340,8 @@ app.get("/api/standings", async (req, res) => {
   }
 });
 
-async function startServer() {
-  await loadSmackPostsFromDisk();
-  app.listen(PORT, () => {
-    console.log(`Server listening on http://localhost:${PORT}`);
-  });
-}
+await loadSmackPostsFromDisk();
 
-startServer().catch((err) => {
-  console.error("Fatal startup error:", err);
-  process.exit(1);
+app.listen(PORT, () => {
+  console.log(`Server listening on http://localhost:${PORT}`);
 });
